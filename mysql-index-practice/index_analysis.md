@@ -1,56 +1,62 @@
-﻿# Phân tích chỉ mục trong MySQL
+﻿# Phân tích bài thực hành Chỉ mục trong MySQL
 
-## 1. Mục tiêu
+## 1. Cơ sở dữ liệu
 
-Bài thực hành sử dụng cơ sở dữ liệu `classicmodels` và bảng `customers` để so sánh execution plan trước và sau khi tạo Index.
+Sử dụng cơ sở dữ liệu mẫu:
 
-## 2. Truy vấn ban đầu
+classicmodels
 
-Truy vấn tìm khách hàng:
+Bảng được sử dụng:
+
+customers
+
+## 2. Truy vấn trước khi tạo Index
+
+Truy vấn:
 
 SELECT * FROM customers WHERE customerName = 'Land of Toys Inc.';
 
-Trước khi tạo index riêng trên `customerName`, MySQL có thể phải kiểm tra nhiều dòng của bảng.
+Sử dụng EXPLAIN để xem execution plan.
 
-Sử dụng `EXPLAIN` để quan sát execution plan.
+Nếu không có Index phù hợp, MySQL có thể phải quét nhiều dòng trong bảng.
 
-## 3. Các cột quan trọng của EXPLAIN
+## 3. Các cột cần quan sát trong EXPLAIN
 
 ### table
 
-Cho biết bảng được truy cập.
+Cho biết bảng đang được truy vấn.
 
 ### type
 
-Cho biết phương pháp truy cập dữ liệu.
+Cho biết kiểu truy cập dữ liệu.
 
-Các giá trị thường gặp:
+Một số giá trị thường gặp:
 
-system
-const
-eq_ref
-ref
-range
-index
-ALL
+- system
+- const
+- eq_ref
+- ref
+- range
+- index
+- ALL
 
-`ALL` thường biểu thị Full Table Scan.
+ALL thường biểu thị Full Table Scan.
 
 ### possible_keys
 
-Các index mà MySQL có thể cân nhắc sử dụng.
+Danh sách các Index mà MySQL có thể sử dụng.
 
 ### key
 
-Index thực tế được optimizer lựa chọn.
+Index thực tế được MySQL Optimizer lựa chọn.
 
 ### key_len
 
-Độ dài phần index được sử dụng.
+Độ dài phần key được sử dụng.
 
 ### ref
 
-Cho biết giá trị hoặc cột được dùng để so sánh với index.
+Cột hoặc giá trị được so sánh với Index.
 
 ### rows
 
@@ -58,41 +64,42 @@ Số dòng MySQL ước lượng cần đọc.
 
 ### Extra
 
-Thông tin bổ sung về execution plan.
+Thông tin bổ sung về quá trình thực thi.
 
-Các giá trị như `Using temporary` hoặc `Using filesort` có thể cần được chú ý tùy truy vấn.
+`Using temporary` hoặc `Using filesort` có thể là thông tin cần chú ý tùy loại truy vấn.
 
-## 4. Index trên customerName
+## 4. Index customerName
 
-Tạo index:
+Tạo:
 
 ALTER TABLE customers ADD INDEX idx_customerName(customerName);
 
-Sau đó chạy lại:
+Sau đó chạy lại EXPLAIN.
 
-EXPLAIN SELECT * FROM customers WHERE customerName = 'Land of Toys Inc.';
+Mục tiêu là quan sát:
 
-Kết quả mong đợi là `idx_customerName` xuất hiện trong `possible_keys` và thường được chọn ở cột `key`.
+- possible_keys xuất hiện idx_customerName;
+- key có thể là idx_customerName;
+- type có thể tốt hơn;
+- rows có thể giảm.
 
-Số `rows` dự kiến cũng giảm so với truy vấn chưa có index.
-
-Giá trị thực tế phụ thuộc dữ liệu, statistics và MySQL Optimizer.
+Không ghi cố định rows bằng một con số nếu chưa chạy MySQL thật, vì rows là giá trị ước lượng của Optimizer.
 
 ## 5. Composite Index
 
-Tạo index:
+Tạo:
 
 ALTER TABLE customers ADD INDEX idx_full_name(contactFirstName, contactLastName);
 
-Composite Index chứa nhiều hơn một cột.
+Index này gồm hai cột.
 
-Thứ tự cột rất quan trọng vì B-Tree áp dụng nguyên tắc leftmost prefix.
+Thứ tự cột có ý nghĩa vì Composite B-Tree Index tuân theo nguyên tắc Leftmost Prefix.
 
 Index trên:
 
 (contactFirstName, contactLastName)
 
-có thể hỗ trợ các truy vấn bắt đầu bằng `contactFirstName` và đặc biệt hữu ích khi lọc theo cả `contactFirstName` và `contactLastName`.
+có thể hỗ trợ truy vấn sử dụng contactFirstName và truy vấn sử dụng cả hai cột.
 
 ## 6. Xóa Index
 
@@ -100,35 +107,12 @@ Sử dụng:
 
 ALTER TABLE customers DROP INDEX idx_full_name;
 
-Sau khi xóa, dùng `SHOW INDEX FROM customers` và `EXPLAIN` để quan sát sự thay đổi.
+Sau đó sử dụng SHOW INDEX và EXPLAIN để kiểm tra sự thay đổi.
 
-## 7. So sánh trước và sau
+## 7. Kết luận
 
-### Trước Index
+Index có thể cải thiện hiệu suất truy vấn tìm kiếm bằng cách giảm lượng dữ liệu cần đọc.
 
-- `type` có thể là `ALL`.
-- `possible_keys` có thể không có index phù hợp.
-- `key` có thể là NULL.
-- `rows` có thể lớn.
+Tuy nhiên Index cũng làm tăng chi phí lưu trữ và chi phí cho INSERT, UPDATE và DELETE.
 
-### Sau Index
-
-- `possible_keys` có thể chứa `idx_customerName`.
-- `key` có thể là `idx_customerName`.
-- `type` thường tốt hơn, ví dụ `ref`.
-- `rows` thường giảm.
-
-Không nên tự ghi cố định `rows = 1` nếu chưa chạy EXPLAIN thực tế vì đây là giá trị ước lượng do MySQL Optimizer quyết định.
-
-## 8. Lợi ích và chi phí của Index
-
-Index giúp tăng tốc nhiều truy vấn tìm kiếm nhưng không miễn phí.
-
-Index:
-
-- chiếm thêm dung lượng;
-- làm INSERT tốn thêm công việc;
-- làm UPDATE trên cột index tốn thêm công việc;
-- làm DELETE phải cập nhật cấu trúc index.
-
-Vì vậy cần lựa chọn index dựa trên truy vấn thực tế và kiểm tra bằng `EXPLAIN`.
+Vì vậy cần lựa chọn Index dựa trên truy vấn thực tế và kiểm chứng bằng EXPLAIN.

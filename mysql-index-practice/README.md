@@ -1,102 +1,32 @@
 ﻿# Thực hành - Chỉ mục trong MySQL
 
-## Cơ sở dữ liệu
+## Database
 
 classicmodels
 
-## Bảng sử dụng
+## Table
 
 customers
 
-## Mục tiêu
+## Nội dung thực hành
 
-Thực hành:
+1. Sử dụng EXPLAIN trước khi tạo Index.
+2. Tìm khách hàng Land of Toys Inc.
+3. Tạo Index idx_customerName trên customerName.
+4. Chạy lại EXPLAIN.
+5. Kiểm tra possible_keys, key, key_len, ref, rows và Extra.
+6. Tạo Composite Index idx_full_name.
+7. Thực hành truy vấn contactFirstName.
+8. Thực hành truy vấn contactFirstName + contactLastName.
+9. Quan sát nguyên tắc Leftmost Prefix.
+10. Xóa idx_full_name.
+11. Chạy EXPLAIN lại sau khi xóa Index.
 
-- EXPLAIN
-- INDEX
-- Composite Index
-- ALTER TABLE
-- SHOW INDEX
-- DROP INDEX
-- so sánh execution plan trước và sau tối ưu
-
-## Các bước đã thực hiện
-
-### Bước 1
-
-Chọn database:
-
-USE classicmodels;
-
-### Bước 2
-
-Tìm khách hàng:
-
-Land of Toys Inc.
-
-bằng cột:
-
-customerName
-
-### Bước 3
-
-Sử dụng EXPLAIN trước khi tạo index để kiểm tra:
-
-- table
-- type
-- possible_keys
-- key
-- key_len
-- ref
-- rows
-- Extra
-
-### Bước 4
-
-Tạo index:
-
-idx_customerName
-
-trên cột:
-
-customerName
-
-### Bước 5
-
-Chạy lại EXPLAIN và so sánh execution plan.
-
-### Bước 6
-
-Tạo Composite Index:
-
-idx_full_name
-
-trên:
-
-contactFirstName
-contactLastName
-
-### Bước 7
-
-Kiểm tra index bằng SHOW INDEX và EXPLAIN.
-
-### Bước 8
-
-Xóa Composite Index:
-
-idx_full_name
-
-### Bước 9
-
-Chạy lại EXPLAIN để quan sát execution plan sau khi xóa index.
-
-## Các Index sử dụng
-
-### Index đơn
+## Index đơn
 
 idx_customerName(customerName)
 
-### Composite Index
+## Composite Index
 
 idx_full_name(contactFirstName, contactLastName)
 
@@ -104,9 +34,10 @@ idx_full_name(contactFirstName, contactLastName)
 
 - using_index.sql
 - index_analysis.md
+- README.md
 
 ## Kết luận
 
-Index có thể giúp giảm số dòng MySQL phải kiểm tra và cải thiện tốc độ tìm kiếm.
+EXPLAIN giúp kiểm tra cách MySQL thực thi truy vấn.
 
-Cần sử dụng EXPLAIN để xác nhận MySQL có thực sự sử dụng index hay không thay vì chỉ dựa vào việc index đã tồn tại.
+Không nên chỉ tạo Index rồi giả định rằng MySQL sẽ sử dụng nó. Cần kiểm tra `possible_keys`, `key`, `type` và `rows` trong execution plan.
