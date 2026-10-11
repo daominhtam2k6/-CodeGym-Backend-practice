@@ -1,0 +1,488 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
+
+    <title>
+        Chuyển đổi ERD sang mô hình quan hệ
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: min(1100px, 92%);
+            margin: 40px auto;
+        }
+
+        .header {
+            background: #1d4ed8;
+            color: white;
+            padding: 36px;
+            border-radius: 14px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow:
+                0 4px 18px
+                rgba(0, 0, 0, 0.07);
+        }
+
+        h2 {
+            color: #1d4ed8;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #111827;
+        }
+
+        .relation {
+            padding: 13px 16px;
+            margin: 12px 0;
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            border-radius: 6px;
+            font-family: Consolas, monospace;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+
+        th,
+        td {
+            border: 1px solid #d1d5db;
+            padding: 11px;
+            text-align: left;
+        }
+
+        th {
+            background: #1d4ed8;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .pk {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        .fk {
+            color: #047857;
+            font-weight: bold;
+        }
+
+        .note {
+            background: #fef3c7;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="header">
+
+        <h1>
+            Chuyển đổi ERD sang mô hình dữ liệu quan hệ
+        </h1>
+
+        <p>
+            Phân tích thực thể, quan hệ,
+            thuộc tính đa trị và danh sách bảng kết quả.
+        </p>
+
+    </header>
+
+    <section class="card">
+
+        <h2>
+            Bước 1 - Xác định thực thể
+        </h2>
+
+        <table>
+
+            <tr>
+                <th>Thực thể</th>
+                <th>Khóa chính</th>
+                <th>Thuộc tính</th>
+            </tr>
+
+            <tr>
+                <td>PHIEUXUAT</td>
+                <td class="pk">SoPX</td>
+                <td>NgayXuat</td>
+            </tr>
+
+            <tr>
+                <td>VATTU</td>
+                <td class="pk">MaVTU</td>
+                <td>TenVTU</td>
+            </tr>
+
+            <tr>
+                <td>PHIEUNHAP</td>
+                <td class="pk">SoPN</td>
+                <td>NgayNhap</td>
+            </tr>
+
+            <tr>
+                <td>DONDH</td>
+                <td class="pk">SoDH</td>
+                <td>NgayDH</td>
+            </tr>
+
+            <tr>
+                <td>NHACC</td>
+                <td class="pk">MaNCC</td>
+                <td>TenNCC, DiaChi, SDT đa trị</td>
+            </tr>
+
+        </table>
+
+    </section>
+
+    <section class="card">
+
+        <h2>
+            Bước 2 - Phân tích các mối quan hệ
+        </h2>
+
+        <h3>
+            1. Chi tiết phiếu xuất
+        </h3>
+
+        <div class="relation">
+            PHIEUXUAT N --- N VATTU
+        </div>
+
+        <p>
+            Quan hệ N-N nên tạo bảng
+            CHITIET_PHIEUXUAT.
+        </p>
+
+        <p>
+            Thuộc tính quan hệ:
+            DGXuat, SLXuat.
+        </p>
+
+        <h3>
+            2. Chi tiết phiếu nhập
+        </h3>
+
+        <div class="relation">
+            PHIEUNHAP N --- N VATTU
+        </div>
+
+        <p>
+            Quan hệ N-N nên tạo bảng
+            CHITIET_PHIEUNHAP.
+        </p>
+
+        <p>
+            Thuộc tính quan hệ:
+            DGNhap, SLNhap.
+        </p>
+
+        <h3>
+            3. Chi tiết đơn đặt hàng
+        </h3>
+
+        <div class="relation">
+            DONDH N --- N VATTU
+        </div>
+
+        <p>
+            Quan hệ N-N nên tạo bảng
+            CHITIET_DONDH.
+        </p>
+
+        <h3>
+            4. Cung cấp
+        </h3>
+
+        <div class="relation">
+            NHACC 1 --- N DONDH
+        </div>
+
+        <p>
+            Đưa MaNCC từ NHACC sang DONDH
+            làm khóa ngoại.
+        </p>
+
+    </section>
+
+    <section class="card">
+
+        <h2>
+            Bước 3 - Thuộc tính đa trị
+        </h2>
+
+        <p>
+            SDT của NHACC là thuộc tính đa trị.
+            Một nhà cung cấp có thể có nhiều số điện thoại.
+        </p>
+
+        <p>
+            Vì vậy tách thành bảng:
+        </p>
+
+        <div class="relation">
+            NHACC_SDT(MaNCC, SDT)
+        </div>
+
+        <p>
+            Khóa chính:
+            (MaNCC, SDT)
+        </p>
+
+        <p>
+            MaNCC đồng thời là khóa ngoại
+            tham chiếu NHACC.
+        </p>
+
+    </section>
+
+    <section class="card">
+
+        <h2>
+            Bước 4 - Danh sách bảng sau chuyển đổi
+        </h2>
+
+        <table>
+
+            <tr>
+                <th>STT</th>
+                <th>Bảng</th>
+                <th>Cấu trúc</th>
+            </tr>
+
+            <tr>
+                <td>1</td>
+                <td>PHIEUXUAT</td>
+                <td>
+                    <span class="pk">SoPX PK</span>,
+                    NgayXuat
+                </td>
+            </tr>
+
+            <tr>
+                <td>2</td>
+                <td>VATTU</td>
+                <td>
+                    <span class="pk">MaVTU PK</span>,
+                    TenVTU
+                </td>
+            </tr>
+
+            <tr>
+                <td>3</td>
+                <td>PHIEUNHAP</td>
+                <td>
+                    <span class="pk">SoPN PK</span>,
+                    NgayNhap
+                </td>
+            </tr>
+
+            <tr>
+                <td>4</td>
+                <td>NHACC</td>
+                <td>
+                    <span class="pk">MaNCC PK</span>,
+                    TenNCC,
+                    DiaChi
+                </td>
+            </tr>
+
+            <tr>
+                <td>5</td>
+                <td>DONDH</td>
+                <td>
+                    <span class="pk">SoDH PK</span>,
+                    NgayDH,
+                    <span class="fk">MaNCC FK</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>6</td>
+                <td>NHACC_SDT</td>
+                <td>
+                    <span class="pk">MaNCC + SDT PK</span>,
+                    <span class="fk">MaNCC FK</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>7</td>
+                <td>CHITIET_PHIEUXUAT</td>
+                <td>
+                    <span class="pk">
+                        SoPX + MaVTU PK
+                    </span>,
+                    DGXuat,
+                    SLXuat
+                </td>
+            </tr>
+
+            <tr>
+                <td>8</td>
+                <td>CHITIET_PHIEUNHAP</td>
+                <td>
+                    <span class="pk">
+                        SoPN + MaVTU PK
+                    </span>,
+                    DGNhap,
+                    SLNhap
+                </td>
+            </tr>
+
+            <tr>
+                <td>9</td>
+                <td>CHITIET_DONDH</td>
+                <td>
+                    <span class="pk">
+                        SoDH + MaVTU PK
+                    </span>
+                </td>
+            </tr>
+
+        </table>
+
+    </section>
+
+    <section class="card">
+
+        <h2>
+            Mô hình quan hệ hoàn chỉnh
+        </h2>
+
+        <div class="relation">
+            PHIEUXUAT(SoPX PK, NgayXuat)
+        </div>
+
+        <div class="relation">
+            VATTU(MaVTU PK, TenVTU)
+        </div>
+
+        <div class="relation">
+            PHIEUNHAP(SoPN PK, NgayNhap)
+        </div>
+
+        <div class="relation">
+            NHACC(MaNCC PK, TenNCC, DiaChi)
+        </div>
+
+        <div class="relation">
+            NHACC_SDT(MaNCC PK/FK, SDT PK)
+        </div>
+
+        <div class="relation">
+            DONDH(SoDH PK, NgayDH, MaNCC FK)
+        </div>
+
+        <div class="relation">
+            CHITIET_PHIEUXUAT(
+            SoPX PK/FK,
+            MaVTU PK/FK,
+            DGXuat,
+            SLXuat)
+        </div>
+
+        <div class="relation">
+            CHITIET_PHIEUNHAP(
+            SoPN PK/FK,
+            MaVTU PK/FK,
+            DGNhap,
+            SLNhap)
+        </div>
+
+        <div class="relation">
+            CHITIET_DONDH(
+            SoDH PK/FK,
+            MaVTU PK/FK)
+        </div>
+
+    </section>
+
+    <section class="card">
+
+        <h2>
+            Quy tắc đã sử dụng
+        </h2>
+
+        <div class="note">
+
+            <p>
+                1. Thực thể được chuyển thành bảng.
+            </p>
+
+            <p>
+                2. Thuộc tính khóa trở thành Primary Key.
+            </p>
+
+            <p>
+                3. Quan hệ 1-N:
+                đưa khóa chính phía 1 sang phía N làm Foreign Key.
+            </p>
+
+            <p>
+                4. Quan hệ N-N:
+                tạo bảng trung gian với khóa chính ghép.
+            </p>
+
+            <p>
+                5. Thuộc tính của quan hệ N-N
+                được đưa vào bảng trung gian.
+            </p>
+
+            <p>
+                6. Thuộc tính đa trị được tách thành bảng riêng.
+            </p>
+
+        </div>
+
+    </section>
+
+</div>
+
+</body>
+
+</html>
